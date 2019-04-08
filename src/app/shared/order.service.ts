@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Order } from './order.model';
-import { OrderItem } from './order-item.model';
+import { Item } from './item.model';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -9,28 +9,32 @@ import { environment } from 'src/environments/environment';
 })
 export class OrderService {
   formData: Order;
-  orderItems: OrderItem[];
+  orderItems: Item[];
 
   constructor(private http: HttpClient) { }
 
   saveOrUpdateOrder() {
+    this.formData.items = this.orderItems;
+    const data = {
+      restaurantCode: this.formData.restaurantCode,
+      items: this.orderItems.map(x => ({ itemCode: x.itemCode, description: x.description, quantity: x.quantity}))
+    }
     var body = {
-      ...this.formData,
-      OrderItems: this.orderItems
+      ...data,
     };
-    return this.http.post(environment.apiURL + '/Order', body);
+    return this.http.post(environment.apiURL + '/orders', body);
   }
 
   getOrderList() {
-    return this.http.get(environment.apiURL + '/Order').toPromise();
+    return this.http.get(environment.apiURL + '/orders').toPromise();
   }
 
-  getOrderByID(id:number):any {
-    return this.http.get(environment.apiURL + '/Order/'+id).toPromise();
+  getOrderByID(id: number): any {
+    return this.http.get(environment.apiURL + '/orders/' + id).toPromise();
   }
 
-  deleteOrder(id:number) {
-    return this.http.delete(environment.apiURL + '/Order/'+id).toPromise();
+  deleteOrder(id: number) {
+    return this.http.delete(environment.apiURL + '/orders/' + id).toPromise();
   }
 
 }

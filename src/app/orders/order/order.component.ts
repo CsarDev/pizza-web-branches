@@ -1,10 +1,12 @@
 import { CustomerService } from './../../shared/customer.service';
 import { OrderService } from './../../shared/order.service';
+import { ItemService } from './../../shared/item.service';
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { OrderItemsComponent } from '../order-items/order-items.component';
 import { Customer } from 'src/app/shared/customer.model';
+import { Item } from 'src/app/shared/item.model';
 import { ToastrService } from 'ngx-toastr';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -18,6 +20,7 @@ export class OrderComponent implements OnInit {
   isValid: boolean = true;
 
   constructor(public service: OrderService,
+    public itemService: ItemService,
     private dialog: MatDialog,
     private customerService: CustomerService,
     private toastr: ToastrService,
@@ -30,24 +33,32 @@ export class OrderComponent implements OnInit {
       this.resetForm();
     } else {
       this.service.getOrderByID(parseInt(orderID)).then(res => {
-        this.service.formData = res.order;
-        this.service.orderItems = res.orderDetails;
+        this.service.formData = res;
+        this.service.orderItems = res.items;
       });
     }
 
-    this.customerService.getCustomerList().then(res => this.customerList = res as Customer[]);
+    this.customerService.getCustomerList().then((res: any[]) => {
+      const result = res.map(x => ({ CustomerID: x.code, Name: x.name}));
+      this.customerList = result as Customer[];
+    });
   }
 
   resetForm(form?: NgForm) {
-    if (form = null)
+    if (form = null) {
       form.resetForm();
+    }
     this.service.formData = {
-      OrderID: null,
-      OrderNo: Math.floor(100000 + Math.random() * 900000).toString(),
-      CustomerID: 0,
+      orderId: null,
+      orderNo: Math.floor(100000 + Math.random() * 900000).toString(),
+      restaurantCode: 0,
+      restaurantName: null,
+      orderStatus: 0,
+      statusDescription: 'Created',
       PMethod: '',
       GTotal: 0,
-      DeletedOrderItemIDs: ''
+      DeletedOrderItemIDs: '',
+      items: []
     };
     this.service.orderItems = [];
   }
@@ -64,11 +75,14 @@ export class OrderComponent implements OnInit {
   }
 
 
-  onDeleteOrderItem(orderItemID: number, i: number) {
-    if (orderItemID != null)
-      this.service.formData.DeletedOrderItemIDs += orderItemID + ",";
-    this.service.orderItems.splice(i, 1);
-    this.updateGrandTotal();
+  onDeleteOrderItem(orderItem: Item, i: number) {
+    if (orderItem.orderItemId != null) {
+      this.itemService.deleteOrderItem(orderItem.orderId, orderItem).then(() => {
+        this.service.orderItems.splice(i, 1);
+        this.service.formData.items.splice(i, 1);
+        this.updateGrandTotal();
+      });
+    }
   }
 
   updateGrandTotal() {
@@ -80,10 +94,11 @@ export class OrderComponent implements OnInit {
 
   validateForm() {
     this.isValid = true;
-    if (this.service.formData.CustomerID == 0)
+    if (this.service.formData.restaurantCode === 0) {
       this.isValid = false;
-    else if (this.service.orderItems.length == 0)
+    } else if (this.service.orderItems.length === 0) {
       this.isValid = false;
+    }
     return this.isValid;
   }
 
@@ -94,7 +109,7 @@ export class OrderComponent implements OnInit {
         this.resetForm();
         this.toastr.success('Submitted Successfully', 'Restaurent App.');
         this.router.navigate(['/orders']);
-      })
+      });
     }
   }
 
