@@ -11,6 +11,6 @@ export class CustomerService {
   constructor(private http: HttpClient) { }
 
   getCustomerList() {
-    return this.http.get(environment.apiURL + '/restaurants').toPromise();
+    return this.http.get(environment.apiURL + '/branches/restaurants').toPromise();
    }
 }
