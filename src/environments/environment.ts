@@ -4,8 +4,7 @@
 
 export const environment = {
   production: false,
-  apiURL: 'https://g1containerorderservice.azurewebsites.net/api',
-  apiBranchUrl: 'https://pizzasucursal.azurewebsites.net/api/pizza_branch'
+  apiURL: 'https://apimanagercsar.azure-api.net'
 };
 
 /*

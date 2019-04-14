@@ -39,7 +39,7 @@ export class OrderComponent implements OnInit {
     }
 
     this.customerService.getCustomerList().then((res: any[]) => {
-      const result = res.map(x => ({ CustomerID: x.code, Name: x.name}));
+      const result = res.map(x => ({ CustomerID: x.restaurantCode, Name: x.name}));
       this.customerList = result as Customer[];
     });
   }
